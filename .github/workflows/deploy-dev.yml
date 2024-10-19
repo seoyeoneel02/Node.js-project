@@ -39,7 +39,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          ssh node-project 'pnpm install --prefix /opt/app/'
+          ssh node-project 'npm install --prefix /opt/app/'
 
       - name: Copy systemd service file
         run: |
@@ -50,7 +50,7 @@ jobs:
 
             [Service]
             User=${USER}
-            ExecStart=/usr/bin/pnpm run dev --prefix /opt/app/
+            ExecStart=/usr/bin/npm run dev --prefix /opt/app/
             Restart=always
 
             [Install]
