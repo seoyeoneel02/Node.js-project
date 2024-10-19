@@ -20,7 +20,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
           cat >>~/.ssh/config <<END
-          Host playground-umc-7th
+          Host node-project
             HostName $EC2_HOST
             User $EC2_USER
             IdentityFile ~/.ssh/id_rsa
@@ -33,24 +33,24 @@ jobs:
 
       - name: Copy Workspace
         run: |
-          ssh playground-umc-7th 'sudo mkdir -p /opt/app'
-          ssh playground-umc-7th 'sudo chown ubuntu:ubuntu /opt/app'
-          scp -r ./[!.]* playground-umc-7th:/opt/app
+          ssh node-project 'sudo mkdir -p /opt/app'
+          ssh node-project 'sudo chown ubuntu:ubuntu /opt/app'
+          scp -r ./[!.]* node-project:/opt/app
 
       - name: Install dependencies
         run: |
-          ssh playground-umc-7th 'npm install --prefix /opt/app/'
+          ssh node-project 'pnpm install --prefix /opt/app/'
 
       - name: Copy systemd service file
         run: |
-          ssh playground-umc-7th '
+          ssh node-project '
             echo "[Unit]
-            Description=UMC 7th Project
+            Description=node-project
             After=network.target
 
             [Service]
             User=${USER}
-            ExecStart=/usr/bin/npm run dev --prefix /opt/app/
+            ExecStart=/usr/bin/pnpm run dev --prefix /opt/app/
             Restart=always
 
             [Install]
@@ -59,9 +59,9 @@ jobs:
 
       - name: Enable systemd service
         run: |
-          ssh playground-umc-7th 'sudo systemctl daemon-reload'
-          ssh playground-umc-7th 'sudo systemctl enable app'
+          ssh node-project 'sudo systemctl daemon-reload'
+          ssh node-project 'sudo systemctl enable app'
 
       - name: Restart systemd service
         run: |
-          ssh playground-umc-7th 'sudo systemctl restart app'
+          ssh node-project 'sudo systemctl restart app'
