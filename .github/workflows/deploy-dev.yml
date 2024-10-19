@@ -16,14 +16,14 @@ jobs:
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
-          echo "$EC2_SSH_KEY" > C:/Users/jesic/.ssh/node-project
-          chmod 600 C:/Users/jesic/.ssh/node-project
+          echo "$EC2_SSH_KEY" > ~/.ssh/node-project
+          chmod 600 ~/.ssh/node-project
 
           cat >>~/.ssh/config <<END
           Host node-project
             HostName $EC2_HOST
             User $EC2_USER
-            IdentityFile C:/Users/jesic/.ssh/node-project
+            IdentityFile ~/.ssh/node-project
             StrictHostKeyChecking no
           END
         env:
