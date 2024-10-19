@@ -10,4 +10,58 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - TODO
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          cat >>~/.ssh/config <<END
+          Host playground-umc-7th
+            HostName $EC2_HOST
+            User $EC2_USER
+            IdentityFile ~/.ssh/id_rsa
+            StrictHostKeyChecking no
+          END
+        env:
+          EC2_USER: ubuntu
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Copy Workspace
+        run: |
+          ssh playground-umc-7th 'sudo mkdir -p /opt/app'
+          ssh playground-umc-7th 'sudo chown ubuntu:ubuntu /opt/app'
+          scp -r ./[!.]* playground-umc-7th:/opt/app
+
+      - name: Install dependencies
+        run: |
+          ssh playground-umc-7th 'npm install --prefix /opt/app/'
+
+      - name: Copy systemd service file
+        run: |
+          ssh playground-umc-7th '
+            echo "[Unit]
+            Description=UMC 7th Project
+            After=network.target
+
+            [Service]
+            User=${USER}
+            ExecStart=/usr/bin/npm run dev --prefix /opt/app/
+            Restart=always
+
+            [Install]
+            WantedBy=multi-user.target" | sudo tee /etc/systemd/system/app.service
+          '
+
+      - name: Enable systemd service
+        run: |
+          ssh playground-umc-7th 'sudo systemctl daemon-reload'
+          ssh playground-umc-7th 'sudo systemctl enable app'
+
+      - name: Restart systemd service
+        run: |
+          ssh playground-umc-7th 'sudo systemctl restart app'
