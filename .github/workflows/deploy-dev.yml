@@ -14,54 +14,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "$EC2_SSH_KEY" > ~/.ssh/node-project
-          chmod 600 ~/.ssh/node-project
-
-          cat >>~/.ssh/config <<END
-          Host node-project
-            HostName $EC2_HOST
-            User $EC2_USER
-            IdentityFile ~/.ssh/node-project
-            StrictHostKeyChecking no
-          END
-        env:
-          EC2_USER: ubuntu
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-
-      - name: Copy Workspace
-        run: |
-          ssh node-project 'sudo mkdir -p /opt/app'
-          ssh node-project 'sudo chown ubuntu:ubuntu /opt/app'
-          scp -r ./[!.]* node-project:/opt/app
-
-      - name: Install dependencies
-        run: |
-          ssh node-project 'npm install --prefix /opt/app/'
-
-      - name: Copy systemd service file
-        run: |
-          ssh node-project '
-            echo "[Unit]
-            Description=node-project
-            After=network.target
-
-            [Service]
-            User=${USER}
-            ExecStart=/usr/bin/npm run dev --prefix /opt/app/
-            Restart=always
-
-            [Install]
-            WantedBy=multi-user.target" | sudo tee /etc/systemd/system/app.service
-          '
-
-      - name: Enable systemd service
-        run: |
-          ssh node-project 'sudo systemctl daemon-reload'
-          ssh node-project 'sudo systemctl enable app'
-
-      - name: Restart systemd service
-        run: |
-          ssh node-project 'sudo systemctl restart app'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          script: |
+            cd Node.js-project
+            git pull origin dev
+            pm2 kill
+            npm install
+            pm2 start src/index.js
