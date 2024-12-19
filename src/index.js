@@ -4,6 +4,7 @@ import cors from "cors";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
 import { healthRoute } from './routes/health.js';
+import { boardRoute } from './routes/board.js';
 
 dotenv.config();
 
@@ -68,6 +69,7 @@ app.get('/', (req, res) => {
 
 // router setting
 app.use("/health", healthRoute);
+app.use("/board", boardRoute);
 
 app.use((err, req, res, next) => {
     if (res.headersSent) {
