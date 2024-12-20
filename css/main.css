@@ -1,0 +1,19 @@
+@font-face {
+    font-family: "Typo_SsangmunDong";
+    src: url("/fonts/타이포\ 쌍문동\ 스텐실.TTF");
+}
+
+#main {
+    background-color: white;
+    text-align: center;
+    border-radius: 20px;
+}
+
+#main h1 {
+    position: absolute;
+    top: 27%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #404040;
+    font-family: "Typo_SsangmunDong";
+}
